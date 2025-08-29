@@ -13,6 +13,12 @@
     (ReactPaginate)
     - npm install axios
     (axios) 
+3. створюємо папку .env де вписуємо ключі
+
+NEXT_PUBLIC_API_KEY = eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkYmQ5NzVmMDlkM2UxZWQxOTE1NmFhMWVmYTEzYTMxZSIsIm5iZiI6MTc1Mjc0NTEzMS4zMTYsInN1YiI6IjY4NzhjNGFiYjA3ZDMyMWYwZGJhODU3MSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.ahMt_lIn9bKsdd_vk9LELLjCCI82aYzvwh_krHs8L-c
+
+NEXT_PUBLIC_NOTEHUB_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJldXRhc3ZldGxhbmEzODJAZ21haWwuY29tIiwiaWF0IjoxNzU0NTgwMjQ2fQ.F-nSQM_8oWXht6nrhLDyE3lSDdG9bAvY_crCl1ZrV2Y
+   
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

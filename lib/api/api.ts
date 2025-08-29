@@ -1,8 +1,7 @@
+// lib/api.ts
 
-// lib/api.ts
-// lib/api.ts
 import axios from 'axios';
-import type { Note, NoteTag } from '../types/note';
+import type { Note, NoteTag } from '../../types/note';
 
 axios.defaults.baseURL = "https://notehub-public.goit.study/api";
 
@@ -115,5 +114,10 @@ export const getCategories = async (): Promise<CategoryType[]> => {
   }
 };
 
-export type { Note, NoteTag };
+export const nextServer = axios.create({
+    baseURL: `${process.env.NEXT_PUBLIC_API_URL}/api`,
+    headers: { "Content-Type": "application/json" },
+    withCredentials: true,
+});
 
+export type { Note, NoteTag };
