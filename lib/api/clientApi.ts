@@ -2,23 +2,22 @@
 
 import { nextServer } from "./api";
 
-
-
 import type {
   User,
   RegisterRequest,
   LoginRequest,
   UpdateUserRequest,
-  CheckSessionRequest,
 } from "@/types/user";
 import type { Note, NewNoteData } from "@/types/note";
-
 
 if (process.env.NODE_ENV === "development") {
   
   console.log("CLIENT API baseURL =", nextServer.defaults.baseURL);
 }
 
+/* =========================
+ *          NOTES
+ * ======================= */
 
 export interface FetchNotesResponse {
   notes: Note[];
@@ -90,10 +89,16 @@ export const logoutUser = async (): Promise<void> => {
   await nextServer.post("/auth/logout");
 };
 
+/** 
+ * /auth/session у цьому бекенді повертає:
+ *  - 200 з тілом користувача (авторизований)
+ *  - 200 без тіла (не авторизований)
+ * Тому приводимо до boolean без використання any.
+ */
 export const checkSession = async (): Promise<boolean> => {
-  const res = await nextServer.get<CheckSessionRequest>("/auth/session");
-  // якщо бекенд повертає об’єкт користувача або success – підлаштовуй під свій тип
-  return (res.data as any)?.success ?? true;
+  const res = await nextServer.get<unknown>("/auth/session");
+  // Авторизованим вважаємо випадок, коли бекенд повернув об'єкт (user)
+  return typeof res.data === "object" && res.data !== null;
 };
 
 export const getMe = async (): Promise<User> => {
@@ -106,7 +111,4 @@ export const updateMe = async (payload: UpdateUserRequest): Promise<User> => {
   return res.data;
 };
 
-export type { Note,  NewNoteData };
-
-
-
+export type { Note, NewNoteData };
