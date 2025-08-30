@@ -3,7 +3,7 @@
 import { nextServer } from "./api";
 
 
-// ===== Types =====
+
 import type {
   User,
   RegisterRequest,
@@ -15,14 +15,10 @@ import type { Note, NewNoteData } from "@/types/note";
 
 
 if (process.env.NODE_ENV === "development") {
-  // @ts-ignore
-  // eslint-disable-next-line no-console
+  
   console.log("CLIENT API baseURL =", nextServer.defaults.baseURL);
 }
 
-/* =========================
- *        NOTES (client)
- * ======================= */
 
 export interface FetchNotesResponse {
   notes: Note[];

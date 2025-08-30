@@ -10,8 +10,6 @@ export const nextServer = axios.create({
 
 
 if (process.env.NODE_ENV === "development") {
-  // @ts-ignore
-  // eslint-disable-next-line no-console
-  console.log("API baseURL =", nextServer.defaults.baseURL);
+   console.log("API baseURL =", nextServer.defaults.baseURL);
 }
 

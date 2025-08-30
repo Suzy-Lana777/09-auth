@@ -1,96 +1,68 @@
-//lib/api/serverApi.ts
+// /lib/api/serverApi.ts
 
-import { nextServer } from "./api";
+// /lib/api/serverApi.ts
+
 import { cookies } from "next/headers";
+import { nextServer } from "./api";
 import type { AxiosResponse } from "axios";
 import type { User } from "@/types/user";
-import type { Note } from "@/types/note";
+import type { FetchNotesParams, Note, NotesResponse } from "@/types/note";
 
-/* Якщо цих типів нема у твоїх загальних types – локально оголошуємо */
+// Тип реальної відповіді бекенду для /notes
 interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
 }
-interface CategoryType {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
-/* ----------------------------------
- *  Утиліта: побудова Cookie header
- * ---------------------------------- */
-async function buildCookieHeader(): Promise<string> {
-  const store = await cookies();
-  return store
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
-}
-
-/* =========================
- *      AUTH / SESSION
- * ======================= */
-
-export const serverGetSession = async (): Promise<AxiosResponse<unknown>> => {
-  const Cookie = await buildCookieHeader();
-  return nextServer.get("/auth/session", { headers: { Cookie } });
+// Перевірка активної сесії на сервері
+export const checkServerSession = async (): Promise<AxiosResponse<unknown>> => {
+  const cookieStore = cookies();
+  return nextServer.get("/auth/session", {
+    headers: { Cookie: cookieStore.toString() },
+  });
 };
 
-export const getServerMe = async (): Promise<User> => {
-  const Cookie = await buildCookieHeader();
+// Отримати профіль користувача на сервері
+export const getServeMe = async (): Promise<User> => {
+  const cookieStore = cookies();
   const { data } = await nextServer.get<User>("/users/me", {
-    headers: { Cookie },
+    headers: { Cookie: cookieStore.toString() },
   });
   return data;
 };
 
-export const updateServerMe = async (payload: Partial<User>): Promise<User> => {
-  const Cookie = await buildCookieHeader();
-  const { data } = await nextServer.patch<User>("/users/me", payload, {
-    headers: { Cookie },
-  });
-  return data;
-};
+// Отримати список нотаток на сервері (адаптуємо форму відповіді бекенду до вашого NotesResponse)
+export const fetchNotesServer = async ({
+  tag,
+  search,
+  page = 1,
+  perPage = 12,
+}: FetchNotesParams): Promise<NotesResponse> => {
+  const cookieStore = cookies();
 
-/* =========================
- *         NOTES
- * ======================= */
-
-export const fetchNotesServer = async (
-  page: number,
-  perPage: number = 12,
-  search: string = "",
-  tag?: string
-): Promise<FetchNotesResponse> => {
-  const Cookie = await buildCookieHeader();
-  const { data } = await nextServer.get<FetchNotesResponse>("/notes", {
+  const res = await nextServer.get<FetchNotesResponse>("/notes", {
     params: {
+      tag,
       page,
       perPage,
-      ...(search.trim() ? { search } : {}),
-      ...(tag && tag.toLowerCase() !== "all" ? { tag } : {}),
+      ...(search?.trim() ? { search } : {}),
     },
-    headers: { Cookie },
+    headers: { Cookie: cookieStore.toString() },
   });
-  return data;
+
+  return {
+    page,
+    perPage,
+    data: res.data.notes,
+    totalPages: res.data.totalPages,
+  };
 };
 
-/* =========================
- *       CATEGORIES
- * ======================= */
-
-export const getCategoriesServer = async (): Promise<CategoryType[]> => {
-  const Cookie = await buildCookieHeader();
-  try {
-    const { data } = await nextServer.get<CategoryType[]>("/categories", {
-      headers: { Cookie },
-    });
-    return data;
-  } catch (error: any) {
-    if (error?.response?.status === 404) return [];
-    throw error;
-  }
+// Отримати одну нотатку за id на сервері
+export const fetchNoteByIdServer = async (id: string): Promise<Note> => {
+  const cookieStore = cookies();
+  const res = await nextServer.get<Note>(`/notes/${id}`, {
+    headers: { Cookie: cookieStore.toString() },
+  });
+  return res.data;
 };
