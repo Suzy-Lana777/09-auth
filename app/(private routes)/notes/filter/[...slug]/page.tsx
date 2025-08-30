@@ -1,6 +1,6 @@
 // app/notes/filter/[...slug]/page.tsx
 
-import { fetchNotes, FetchNotesResponse } from "@/lib/api";
+import { fetchNotes, FetchNotesResponse } from "@/lib/api/clientApi";
 import NotesClient from "../../filter/[...slug]/Notes.client";
 import { Metadata } from "next";
 

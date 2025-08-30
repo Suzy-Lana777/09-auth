@@ -20,6 +20,13 @@ export interface NewNote {
   tag: NoteTag;
 }
 
+export interface NewNoteData {
+  title: string;
+  content: string;
+  tag: string; // у новому бекенді перелік тегів широкий, тому string
+}
+
+
 export interface FetchNotesParams {
   tag?: string;
   page?: number;
