@@ -1,7 +1,5 @@
 // /lib/api/serverApi.ts
 
-// /lib/api/serverApi.ts
-
 import { cookies } from "next/headers";
 import { nextServer } from "./api";
 import type { AxiosResponse } from "axios";
@@ -23,7 +21,7 @@ export const checkServerSession = async (): Promise<AxiosResponse<unknown>> => {
 };
 
 // Отримати профіль користувача на сервері
-export const getServeMe = async (): Promise<User> => {
+export const getServerMe = async (): Promise<User> => {
   const cookieStore = cookies();
   const { data } = await nextServer.get<User>("/users/me", {
     headers: { Cookie: cookieStore.toString() },
