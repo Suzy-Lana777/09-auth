@@ -7,7 +7,7 @@
 } from "@tanstack/react-query";
 
 import NotePreviewClient from "./NotePreview.client";
-import { getSingleNote } from "@/lib/api";
+import { getSingleNote } from "@/lib/api/clientApi";
 
 interface NoteDetailsProps {
   params: Promise<{ id: string }>;
