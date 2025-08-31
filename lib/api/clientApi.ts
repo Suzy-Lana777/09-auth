@@ -95,12 +95,7 @@ export const logoutUser = async (): Promise<void> => {
   await nextServer.post("/auth/logout");
 };
 
-/** 
- * /auth/session у цьому бекенді повертає:
- *  - 200 з тілом користувача (авторизований)
- *  - 200 без тіла (не авторизований)
- * Тому приводимо до boolean без використання any.
- */
+
 export const checkSession = async (): Promise<boolean> => {
   const res = await nextServer.get<unknown>("/auth/session");
   // Авторизованим вважаємо випадок, коли бекенд повернув об'єкт (user)
