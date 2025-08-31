@@ -9,6 +9,7 @@ import css from "./SignUpPage.module.css";
 export default function SignUpPage() {
   const router = useRouter();
   const { setUser } = useAuthStore();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,13 +21,16 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      // тепер передаємо об'єкт, як вимагає registerUser
+      // виклик API під твою сигнатуру registerUser
       const user = await registerUser({ email, password });
       setUser(user);
+
+      // редірект + примусове оновлення даних з сервера
       router.push("/profile");
+      router.refresh();
     } catch (err) {
       console.error("Sign up error:", err);
-      setError("Registration failed");
+      setError("Registration failed. Try another email?");
     } finally {
       setLoading(false);
     }
@@ -34,8 +38,9 @@ export default function SignUpPage() {
 
   return (
     <main className={css.mainContent}>
-      <h1 className={css.formTitle}>Sign up</h1>
       <form onSubmit={handleSubmit} className={css.form}>
+        <h1 className={css.formTitle}>Sign up</h1>
+
         <div className={css.formGroup}>
           <label htmlFor="email">Email</label>
           <input

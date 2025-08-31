@@ -2,29 +2,38 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { loginUser } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
+import { useRouter } from "next/navigation";
 import css from "./SignInPage.module.css";
 
 export default function SignInPage() {
   const router = useRouter();
   const { setUser } = useAuthStore();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
     try {
-      const user = await loginUser({ email, password }); // <- під твою сигнатуру
+      // ВАЖЛИВО: під твою сигнатуру loginUser(payload)
+      const user = await loginUser({ email, password });
       setUser(user);
+
+      // редірект у профіль + оновити Server Components (шапку тощо)
       router.push("/profile");
+      router.refresh();
     } catch (err) {
       console.error("Login error:", err);
       setError("Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,8 +69,8 @@ export default function SignInPage() {
         </div>
 
         <div className={css.actions}>
-          <button type="submit" className={css.submitButton}>
-            Log in
+          <button type="submit" className={css.submitButton} disabled={loading}>
+            {loading ? "Logging in..." : "Log in"}
           </button>
         </div>
 

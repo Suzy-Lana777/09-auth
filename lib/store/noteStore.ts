@@ -1,3 +1,5 @@
+// lib/store/noteStore.ts
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
