@@ -75,12 +75,18 @@ export const getCategories = async (): Promise<CategoryType[]> => {
  *        AUTH / USER
  * ======================= */
 
-export const registerUser = async (payload: RegisterRequest): Promise<User> => {
+// Реєстрація користувача
+export const registerUser = async (
+  payload: RegisterRequest // { email: string; password: string }
+): Promise<User> => {
   const res = await nextServer.post<User>("/auth/register", payload);
   return res.data;
 };
 
-export const loginUser = async (payload: LoginRequest): Promise<User> => {
+// Логін користувача
+export const loginUser = async (
+  payload: LoginRequest // { email: string; password: string }
+): Promise<User> => {
   const res = await nextServer.post<User>("/auth/login", payload);
   return res.data;
 };

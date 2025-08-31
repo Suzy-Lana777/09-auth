@@ -1,4 +1,5 @@
 // app/api/auth/register/route.ts
+
 import { NextResponse } from "next/server";
 import axios from "axios";
 
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     validateStatus: () => true,
   });
 
-  // Проксіюємо Set-Cookie з бекенда (access/refresh)
+  // Проксіюємо Set-Cookie назад клієнту, якщо бекенд видав токени
   const setCookie = res.headers["set-cookie"];
   const headers = new Headers();
   if (setCookie) {
