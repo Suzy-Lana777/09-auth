@@ -1,9 +1,8 @@
-import { cookies } from "next/headers";
-import { api } from "../../api";
-import { NextResponse } from "next/server";
-import { isAxiosError } from "axios";
-import { logErrorResponse } from "../../_utils/utils";
-
+import { NextResponse } from 'next/server';
+import { api } from '../../api';
+import { cookies } from 'next/headers';
+import { logErrorResponse } from '../../_utils/utils';
+import { isAxiosError } from 'axios';
 
 type Props = {
   params: Promise<{ id: string }>;

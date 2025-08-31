@@ -1,11 +1,18 @@
 // lib/api/api.ts
 
+// import axios from "axios";
+
+// export const nextServer = axios.create({
+//   baseURL: "/api", 
+//   headers: { "Content-Type": "application/json" },
+//   withCredentials: true,
+// });
+
+// lib/api.ts
+// lib/api.ts
 import axios from "axios";
 
 export const nextServer = axios.create({
-  baseURL: "/api", 
-  headers: { "Content-Type": "application/json" },
+  baseURL: process.env.NEXT_PUBLIC_API_URL + "/api",
   withCredentials: true,
 });
-
-
