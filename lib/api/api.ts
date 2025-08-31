@@ -3,13 +3,9 @@
 import axios from "axios";
 
 export const nextServer = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL, 
+  baseURL: "/api", 
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
 });
 
-
-if (process.env.NODE_ENV === "development") {
-   console.log("API baseURL =", nextServer.defaults.baseURL);
-}
 
