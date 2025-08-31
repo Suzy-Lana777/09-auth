@@ -1,27 +1,36 @@
 // /lib/api/serverApi.ts
 
 import { cookies } from "next/headers";
-import { nextServer } from "./api";
-import type { AxiosResponse } from "axios";
+import { nextServer } from "@/lib/api/api";
 import type { User } from "@/types/user";
 import type { FetchNotesParams, Note, NotesResponse } from "@/types/note";
 
-// Тип реальної відповіді бекенду для /notes
+/** Схема відповіді /notes */
 interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
 }
 
+/** Експортуємо тип категорій */
+export interface CategoryType {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Перевірка активної сесії на сервері
-export const checkServerSession = async (): Promise<AxiosResponse<unknown>> => {
+export const checkServerSession = async () => {
   const cookieStore = cookies();
-  return nextServer.get("/auth/session", {
+  const res = await nextServer.get("/auth/session", {
     headers: { Cookie: cookieStore.toString() },
   });
+  return res;
 };
 
-// Отримати профіль користувача на сервері
-export const getServerMe = async (): Promise<User> => {
+// Профіль користувача
+export const getServeMe = async (): Promise<User> => {
   const cookieStore = cookies();
   const { data } = await nextServer.get<User>("/users/me", {
     headers: { Cookie: cookieStore.toString() },
@@ -29,7 +38,7 @@ export const getServerMe = async (): Promise<User> => {
   return data;
 };
 
-// Отримати список нотаток на сервері (адаптуємо форму відповіді бекенду до вашого NotesResponse)
+// Нотатки (список)
 export const fetchNotesServer = async ({
   tag,
   search,
@@ -37,7 +46,6 @@ export const fetchNotesServer = async ({
   perPage = 12,
 }: FetchNotesParams): Promise<NotesResponse> => {
   const cookieStore = cookies();
-
   const res = await nextServer.get<FetchNotesResponse>("/notes", {
     params: {
       tag,
@@ -56,11 +64,33 @@ export const fetchNotesServer = async ({
   };
 };
 
-// Отримати одну нотатку за id на сервері
+// Нотатка (одна)
 export const fetchNoteByIdServer = async (id: string): Promise<Note> => {
   const cookieStore = cookies();
   const res = await nextServer.get<Note>(`/notes/${id}`, {
     headers: { Cookie: cookieStore.toString() },
   });
   return res.data;
+};
+
+// Категорії (теги) — ЕКСПОРТУЄМО
+export const getCategoriesServer = async (): Promise<CategoryType[]> => {
+  const cookieStore = cookies();
+  try {
+    const res = await nextServer.get<CategoryType[]>("/categories", {
+      headers: { Cookie: cookieStore.toString() },
+    });
+    return res.data;
+  } catch (error: unknown) {
+    // Якщо 404 — повертаємо порожній масив
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      
+      (error as any).response?.status === 404
+    ) {
+      return [];
+    }
+    throw error;
+  }
 };
