@@ -1,45 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { parse } from 'cookie';
-import { isAxiosError } from 'axios';
-import { api } from '../../api';
-import { logErrorResponse } from '../../_utils/utils';
+// app/api/auth/register/route.ts
+import { NextResponse } from "next/server";
+import axios from "axios";
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
+const api = axios.create({
+  baseURL: "https://notehub-api.goit.study",
+  withCredentials: true,
+  headers: { "Content-Type": "application/json" },
+});
 
-    const apiRes = await api.post('auth/register', body);
+export async function POST(request: Request) {
+  const body = await request.json(); // { email, password }
 
-    const cookieStore = await cookies();
-    const setCookie = apiRes.headers['set-cookie'];
+  const res = await api.post("/auth/register", body, {
+    validateStatus: () => true,
+  });
 
-    if (setCookie) {
-      const cookieArray = Array.isArray(setCookie) ? setCookie : [setCookie];
-      for (const cookieStr of cookieArray) {
-        const parsed = parse(cookieStr);
-
-        const options = {
-          expires: parsed.Expires ? new Date(parsed.Expires) : undefined,
-          path: parsed.Path,
-          maxAge: Number(parsed['Max-Age']),
-        };
-        if (parsed.accessToken) cookieStore.set('accessToken', parsed.accessToken, options);
-        if (parsed.refreshToken) cookieStore.set('refreshToken', parsed.refreshToken, options);
-      }
-      return NextResponse.json(apiRes.data, { status: apiRes.status });
-    }
-
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  } catch (error) {
-    if (isAxiosError(error)) {
-      logErrorResponse(error.response?.data);
-      return NextResponse.json(
-        { error: error.message, response: error.response?.data },
-        { status: error.status }
-      );
-    }
-    logErrorResponse({ message: (error as Error).message });
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  // Проксіюємо Set-Cookie з бекенда (access/refresh)
+  const setCookie = res.headers["set-cookie"];
+  const headers = new Headers();
+  if (setCookie) {
+    const list = Array.isArray(setCookie) ? setCookie : [setCookie];
+    list.forEach((c) => headers.append("Set-Cookie", c));
   }
+
+  return new NextResponse(JSON.stringify(res.data ?? {}), {
+    status: res.status,
+    headers,
+  });
 }
