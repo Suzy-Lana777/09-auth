@@ -1,62 +1,67 @@
 // app/notes/filter/[...slug]/page.tsx
 
-import { fetchNotes, FetchNotesResponse } from "@/lib/api/clientApi";
-import NotesClient from "../../filter/[...slug]/Notes.client";
-import { Metadata } from "next";
+import NotesClient from "./Notes.client";
+import type { Metadata } from "next";
+import { fetchNotesServer } from "@/lib/api/serverApi";
 
 type Props = {
   params: Promise<{ slug: string[] }>;
 };
 
-export const generateMetadata = async ({params}: Props): Promise<Metadata> => {
-    const { slug } = await params;
-    const tag = slug[0].toLowerCase() === "all" ? undefined : slug[0].toLowerCase();
-  
-    return {
-        title: tag ? `Notes filtered by ${tag}` : "All notes",
-        description: tag ? `Viewing notes with tag ${tag} tag.`
-            : "Browse all available notes without falters.",
-        openGraph: {
-            title: tag ? `Viewing notes with tag ${tag}` : "All notes",
-            description: tag ? `Browse notes filtered by the ${tag} tag.`
-                : "Browse all available notes without falters.",
-            url:  `https://notehub.com/notes/${tag}`,
-            images: [
-                {
-                    url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
-                    width: 1200,
-                    height: 630,
-                    alt: tag,
-                }
-            ]
-        }
-    }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const raw = slug?.[0]?.toLowerCase();
+  const tag = raw && raw !== "all" ? raw : undefined;
 
+  const title = tag ? `Notes filtered by ${tag}` : "All notes";
+  const description = tag
+    ? `Browse notes filtered by the "${tag}" tag.`
+    : "Browse all available notes without filters.";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://08-routing-nextjs-blond.vercel.app/notes/filter/${tag ?? "all"}`,
+      siteName: "NoteHub",
+      images: [
+        {
+          url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+          width: 1200,
+          height: 630,
+          alt: tag ?? "all",
+        },
+      ],
+      type: "article",
+    },
+  };
 }
 
-export default async function NotesPage({ params }: Props) {
-  const { slug } = await params; 
-  const tag = slug?.[0] || "all"; 
+export default async function NotesByCategory({ params }: Props) {
+  const { slug } = await params;
+  const raw = slug?.[0]?.toLowerCase();
+  const tag = raw && raw !== "all" ? raw : undefined;
 
   const initialPage = 1;
+  const perPage = 12;
   const initialQuery = "";
 
-  let initialData: FetchNotesResponse = { notes: [], totalPages: 0 };
+  let data: any = { notes: [], totalPages: 0 };
 
   try {
-    initialData = await fetchNotes(initialPage, initialQuery, tag);
+    data = await fetchNotesServer({ page: initialPage, perPage, search: initialQuery, tag });
   } catch (e) {
-    console.error("fetchNotes error:", e);
-    // якщо API впаде — повертаємо запасні дані
+    console.error("fetchNotesServer failed:", e);
   }
 
   return (
     <NotesClient
       initialPage={initialPage}
-      initialData={initialData}
+      initialData={data}
       initialQuery={initialQuery}
-      selectedTag={tag}
+      selectedTag={tag ?? "all"}
     />
   );
 }
-

@@ -4,10 +4,18 @@ import { nextServer } from "./api";
 
 import type {
   User,
-  RegisterRequest,
-  LoginRequest,
   UpdateUserRequest,
 } from "@/types/user";
+
+interface RegisterRequest {
+  email: string;
+  password: string;
+}
+interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 import type { Note, NewNoteData } from "@/types/note";
 
 if (process.env.NODE_ENV === "development") {

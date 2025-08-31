@@ -2,43 +2,59 @@
 
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ChangeEvent, FormEvent } from "react";
+import type { NewNote } from "@/types/note";
 import { createNote } from "@/lib/api/clientApi";
+import { useNoteStore } from "@/lib/store/noteStore"; // ⬅️ правильний хук
 import css from "./NoteForm.module.css";
 
 export interface NoteFormProps {
-  tags: string[]; // список доступних тегів
+  tags: string[];
 }
 
 export default function NoteForm({ tags }: NoteFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [tag, setTag] = useState(tags[0] || "Todo");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  // глобальна чернетка зі стора
+  const { draft, setDraft, clearDraft } = useNoteStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  const fallbackTag = tags?.[0] ?? "Todo";
+  const title = draft?.title ?? "";
+  const content = draft?.content ?? "";
+  const tag = (draft?.tag as NewNote["tag"]) ?? (fallbackTag as NewNote["tag"]);
 
-    try {
-      await createNote({ title, content, tag }); // <- API очікує { title, content, tag }
-      // очистимо форму
-      setTitle("");
-      setContent("");
-      setTag(tags[0] || "Todo");
-      // редирект на список
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    
+    setDraft({ ...draft, [name]: value });
+  };
+
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: (newNote: NewNote) => createNote(newNote),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      clearDraft();
       router.push("/notes/filter/all");
-    } catch (err) {
-      console.error("Create note error:", err);
-      setError("Failed to create note");
-    } finally {
-      setLoading(false);
-    }
+    },
+  });
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    mutate({
+      title: title.trim(),
+      content: content.trim(),
+      tag,
+    });
+  };
+
+  const handleCancel = () => {
+    clearDraft();
+    router.back();
   };
 
   return (
@@ -47,9 +63,10 @@ export default function NoteForm({ tags }: NoteFormProps) {
         <label htmlFor="title">Title</label>
         <input
           id="title"
+          name="title"
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={handleChange}
           className={css.input}
           required
           minLength={3}
@@ -61,8 +78,9 @@ export default function NoteForm({ tags }: NoteFormProps) {
         <label htmlFor="content">Content</label>
         <textarea
           id="content"
+          name="content"
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleChange}
           className={css.textarea}
           rows={8}
           maxLength={500}
@@ -74,12 +92,27 @@ export default function NoteForm({ tags }: NoteFormProps) {
         <label htmlFor="tag">Tag</label>
         <select
           id="tag"
+          name="tag"
           value={tag}
-          onChange={(e) => setTag(e.target.value)}
+          onChange={handleChange}
           className={css.select}
           required
         >
-          {tags.map((t) => (
+          {(tags?.length
+            ? tags
+            : [
+                "Todo",
+                "Work",
+                "Personal",
+                "Meeting",
+                "Shopping",
+                "Ideas",
+                "Finance",
+                "Health",
+                "Important",
+                "Travel",
+              ]
+          ).map((t) => (
             <option key={t} value={t}>
               {t}
             </option>
@@ -88,20 +121,15 @@ export default function NoteForm({ tags }: NoteFormProps) {
       </div>
 
       <div className={css.actions}>
-        <button
-          type="button"
-          className={css.cancelButton}
-          onClick={() => router.back()}
-        >
+        <button type="button" className={css.cancelButton} onClick={handleCancel}>
           Cancel
         </button>
-
-        <button type="submit" className={css.submitButton} disabled={loading}>
-          {loading ? "Creating..." : "Create Note"}
+        <button type="submit" className={css.submitButton} disabled={isPending}>
+          {isPending ? "Creating..." : "Create Note"}
         </button>
       </div>
 
-      {error && <p className={css.error}>{error}</p>}
+      {isError && <p className={css.error}>{(error as any)?.message ?? "Failed to create note"}</p>}
     </form>
   );
 }
