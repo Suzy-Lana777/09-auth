@@ -1,35 +1,40 @@
 // lib/api/clientApi.ts
-
 "use client";
 
 import { nextServer } from "./api";
-
+import type { Note, NewNote } from "@/types/note";
 import type { User, UpdateUserRequest } from "@/types/user";
-import type {
-  Note,
-  NewNote,
-  NotesResponse,
-  FetchNotesParams,
-} from "@/types/note";
 
-if (process.env.NODE_ENV === "development") {
-    console.log("CLIENT API baseURL =", nextServer.defaults?.baseURL);
+export interface FetchNotesResponse {
+  notes: Note[];
+  totalPages: number;
+}
+
+export interface CategoryType {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface RegisterRequest {
   email: string;
   password: string;
 }
-
 export interface LoginRequest {
   email: string;
   password: string;
+}
+interface CheckSessionResponse {
+  success: boolean;
 }
 
 export const register = async (payload: RegisterRequest): Promise<User> => {
   const res = await nextServer.post<User>("/auth/register", payload);
   return res.data;
 };
+export const registerUser = register;
 
 export const loginUser = async (payload: LoginRequest): Promise<User> => {
   const res = await nextServer.post<User>("/auth/login", payload);
@@ -42,7 +47,18 @@ export const logoutUser = async (): Promise<void> => {
 
 export const checkSession = async (): Promise<boolean> => {
   const res = await nextServer.get<unknown>("/auth/session");
-  return typeof res.data === "object" && res.data !== null;
+  const data = res.data as unknown;
+
+  if (typeof data === "object" && data !== null) {
+    
+    if ("success" in (data as Record<string, unknown>)) {
+      const success = (data as Record<string, unknown>).success;
+      return typeof success === "boolean" ? success : true;
+    }
+    
+    return true;
+  }
+  return false;
 };
 
 export const getMe = async (): Promise<User> => {
@@ -55,32 +71,20 @@ export const updateMe = async (payload: UpdateUserRequest): Promise<User> => {
   return res.data;
 };
 
-export interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
 
-export const fetchNotes = async ({
-  tag,
-  search,
-  page = 1,
-  perPage = 12,
-}: FetchNotesParams): Promise<NotesResponse> => {
-  const res = await nextServer.get<FetchNotesResponse>("/notes", {
+export const fetchNotes = async (
+  page: number,
+  search: string,
+  tag?: string
+): Promise<FetchNotesResponse> => {
+  const { data } = await nextServer.get<FetchNotesResponse>("/notes", {
     params: {
-      tag,
       page,
-      perPage,
-      ...(search?.trim() ? { search: search.trim() } : {}),
+      ...(search.trim() ? { search: search.trim() } : {}),
+      ...(tag && tag.toLowerCase() !== "all" ? { tag } : {}),
     },
   });
-
-  return {
-    page,
-    perPage,
-    data: res.data.notes,
-    totalPages: res.data.totalPages,
-  };
+  return data;
 };
 
 export const createNote = async (newNote: NewNote): Promise<Note> => {
@@ -95,14 +99,22 @@ export const deleteNote = async (noteId: string): Promise<Note> => {
   return data;
 };
 
-export const fetchNoteById = async (id: string): Promise<Note> => {
+export const getSingleNote = async (id: string): Promise<Note> => {
   const { data } = await nextServer.get<Note>(`/notes/${id}`);
+  return data;
+};
+
+export const fetchNoteById = getSingleNote;
+
+
+export const getCategories = async (): Promise<CategoryType[]> => {
+  const { data } = await nextServer.get<CategoryType[]>("/categories");
   return data;
 };
 
 export type {
   NotesResponse,
   FetchNotesParams,
-  Note,
-  NewNote,
+  Note as NoteType,
+  NewNote as NewNoteType,
 } from "@/types/note";
