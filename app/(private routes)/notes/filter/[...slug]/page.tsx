@@ -1,5 +1,6 @@
 // app/notes/filter/[...slug]/page.tsx
 
+// app/(private routes)/notes/filter/[...slug]/page.tsx
 import NotesClient from "./Notes.client";
 import type { Metadata } from "next";
 import { fetchNotesServer } from "@/lib/api/serverApi";
@@ -49,6 +50,7 @@ export default async function NotesByCategory({ params }: Props) {
   const perPage = 12;
   const search = "";
 
+  // Юніон можливих форм відповіді серверного API
   type ServerRespA = { notes: FetchNotesResponse["notes"]; totalPages: number };
   type ServerRespB = { data: FetchNotesResponse["notes"]; totalPages: number };
   type ServerRespC = { items: FetchNotesResponse["notes"]; totalPages: number };
@@ -72,7 +74,7 @@ export default async function NotesByCategory({ params }: Props) {
     }
   } catch (e) {
     console.error("fetchNotesServer failed:", e);
-    
+    // залишаємо дефолтні дані
   }
 
   return (
