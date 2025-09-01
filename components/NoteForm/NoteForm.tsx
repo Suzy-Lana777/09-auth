@@ -5,7 +5,7 @@
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote } from "@/lib/api/clientApi";
-import type { NewNote } from "@/types/note";
+import type { NewNote, NoteTag } from "@/types/note";
 import { useNoteStore } from "@/lib/store/noteStore";
 import css from "./NoteForm.module.css";
 
@@ -15,24 +15,23 @@ export default function NoteForm() {
 
   const { draft, setDraft, clearDraft } = useNoteStore();
 
-  const TAGS: NewNote["tag"][] = [
+    const TAGS: readonly NoteTag[] = [
     "Todo",
     "Work",
     "Personal",
     "Meeting",
     "Shopping",
     "Ideas",
+    "Travel",
     "Finance",
     "Health",
     "Important",
-    "Travel",
-  ];
+  ] as const;
 
-  // якщо draft.tag порожній/невалідний — беремо перший з переліку
-  const selectedTag: NewNote["tag"] =
-    draft.tag && TAGS.includes(draft.tag as any)
-      ? (draft.tag as NewNote["tag"])
-      : TAGS[0];
+    const isNoteTag = (val: unknown): val is NoteTag =>
+    typeof val === "string" && (TAGS as readonly string[]).includes(val);
+
+    const selectedTag: NoteTag = isNoteTag(draft.tag) ? draft.tag : TAGS[0];
 
   const { mutate, isPending } = useMutation({
     mutationFn: (newNote: NewNote) => createNote(newNote),
@@ -55,7 +54,13 @@ export default function NoteForm() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    setDraft({ ...draft, [e.target.name]: e.target.value } as Partial<NewNote>);
+    const { name, value } = e.target;
+   
+    setDraft(
+      name === "tag" && isNoteTag(value)
+        ? { ...draft, tag: value }
+        : { ...draft, [name]: value }
+    );
   };
 
   return (
@@ -111,7 +116,6 @@ export default function NoteForm() {
         <button type="button" className={css.cancelButton} onClick={() => router.back()}>
           Cancel
         </button>
-
         <button type="submit" className={css.submitButton} disabled={isPending}>
           {isPending ? "Creating..." : "Create note"}
         </button>

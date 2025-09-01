@@ -3,6 +3,7 @@
 import NotesClient from "./Notes.client";
 import type { Metadata } from "next";
 import { fetchNotesServer } from "@/lib/api/serverApi";
+import type { FetchNotesResponse } from "@/lib/api/clientApi"; // лише тип!
 
 type Props = {
   params: Promise<{ slug: string[] }>;
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://08-routing-nextjs-blond.vercel.app/notes/filter/${tag ?? "all"}`,
+      url: `https://07-routing-nextjs-blond.vercel.app/notes/filter/${tag ?? "all"}`,
       siteName: "NoteHub",
       images: [
         {
@@ -44,23 +45,41 @@ export default async function NotesByCategory({ params }: Props) {
   const raw = slug?.[0]?.toLowerCase();
   const tag = raw && raw !== "all" ? raw : undefined;
 
-  const initialPage = 1;
+  const page = 1;
   const perPage = 12;
-  const initialQuery = "";
+  const search = "";
 
-  let data: any = { notes: [], totalPages: 0 };
+  type ServerRespA = { notes: FetchNotesResponse["notes"]; totalPages: number };
+  type ServerRespB = { data: FetchNotesResponse["notes"]; totalPages: number };
+  type ServerRespC = { items: FetchNotesResponse["notes"]; totalPages: number };
+
+  let initialData: FetchNotesResponse = { notes: [], totalPages: 0 };
 
   try {
-    data = await fetchNotesServer({ page: initialPage, perPage, search: initialQuery, tag });
+    const resp = (await fetchNotesServer({
+      page,
+      perPage,
+      search,
+      tag,
+    })) as ServerRespA | ServerRespB | ServerRespC;
+
+    if ("notes" in resp) {
+      initialData = { notes: resp.notes, totalPages: resp.totalPages };
+    } else if ("data" in resp) {
+      initialData = { notes: resp.data, totalPages: resp.totalPages };
+    } else {
+      initialData = { notes: resp.items, totalPages: resp.totalPages };
+    }
   } catch (e) {
     console.error("fetchNotesServer failed:", e);
+    
   }
 
   return (
     <NotesClient
-      initialPage={initialPage}
-      initialData={data}
-      initialQuery={initialQuery}
+      initialPage={page}
+      initialData={initialData}
+      initialQuery={search}
       selectedTag={tag ?? "all"}
     />
   );
