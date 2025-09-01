@@ -1,9 +1,10 @@
-// types/note.ts
 
-export type NoteTag =
-  | "Todo"| "Work"| "Personal"| "Meeting" | "Shopping"| "Ideas"| "Finance"| "Health"| "Important"| "Travel";
-     
-     
+export const NOTE_TAGS = [
+  "Todo","Work","Personal","Meeting","Shopping","Ideas","Finance","Health","Important","Travel",
+] as const;
+
+export type NoteTag = typeof NOTE_TAGS[number];
+
 export interface Note {
   id: string;
   title: string;
@@ -23,35 +24,32 @@ export interface NewNote {
 export interface NewNoteData {
   title: string;
   content: string;
-  tag: string; // у новому бекенді перелік тегів широкий, тому string
+  tag: string; 
 }
 
-
-export interface FetchNotesParams {
+export interface FetchNotesParams{
   tag?: string;
   page?: number;
   perPage?: number;
   search?: string;
 }
 
-export interface NotesResponse {
+export interface NotesResponse{
   data: Note[];
   totalPages: number;
   page: number;
   perPage: number;
 }
 
-/** сирий відгук бекенду /notes (notes + totalPages) */
 export interface FetchNotesResponse {
   notes: Note[];
   totalPages: number;
 }
 
-/** тип для /categories */
-export interface CategoryType {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
+export function normalizeTag(tag?: string | null): NoteTag | undefined {
+  if (!tag) return undefined;
+  const v = String(tag).trim().toLowerCase();
+  if (v === "all") return undefined;
+  const hit = NOTE_TAGS.find(t => t.toLowerCase() === v);
+  return hit as NoteTag | undefined;
 }
