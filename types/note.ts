@@ -1,7 +1,7 @@
 // types/note.ts
 
 export type NoteTag =
-  | "Todo"| "Work"| "Personal"| "Meeting" | "Shopping"| "Ideas"| "Finance"| "Health"| "Important";
+  | "Todo"| "Work"| "Personal"| "Meeting" | "Shopping"| "Ideas"| "Finance"| "Health"| "Important"| "Travel";
      
      
 export interface Note {
