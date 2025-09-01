@@ -1,10 +1,8 @@
 // app/(private routes)/notes/action/create/page.tsx
 
-
 import NoteForm from "@/components/NoteForm/NoteForm";
 import css from "./CreateNote.module.css";
-import { Metadata } from "next";
-import { getCategoriesServer, type CategoryType } from "@/lib/api/serverApi";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "New Note Page",
@@ -12,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "New Note Page",
     description: "Page for add new note",
-    url: "https://notehub.com/notes/action/create",
+    url: "https://08-zustand-76g1.vercel.app/notes/action/create",
     images: [
       {
         url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
@@ -25,15 +23,11 @@ export const metadata: Metadata = {
 };
 
 export default async function CreateNote() {
-  // тягнемо категорії на сервері й беремо з них назви як теги
-  const categories: CategoryType[] = await getCategoriesServer();
-  const tags: string[] = categories.map((c) => c.name);
-
   return (
     <main className={css.main}>
       <div className={css.container}>
         <h1 className={css.title}>Create note</h1>
-        <NoteForm tags={tags} />
+        <NoteForm /> {/* 🔹 без пропса tags */}
       </div>
     </main>
   );
