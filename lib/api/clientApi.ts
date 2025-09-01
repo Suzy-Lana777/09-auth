@@ -1,4 +1,3 @@
-// lib/api/clientApi.ts
 "use client";
 
 import { nextServer } from "./api";
@@ -30,6 +29,28 @@ interface CheckSessionResponse {
   success: boolean;
 }
 
+/* =========================
+ *  НОРМАЛІЗАЦІЯ ТЕГА (ГОЛОВНЕ ВИПРАВЛЕННЯ)
+ * ======================= */
+const TAG_MAP: Record<string, string> = {
+  todo: "Todo",
+  work: "Work",
+  personal: "Personal",
+  meeting: "Meeting",
+  shopping: "Shopping",
+  ideas: "Ideas",
+  finance: "Finance",
+  health: "Health",
+  important: "Important",
+  travel: "Travel",
+};
+function normalizeTagForApi(tag?: string): string | undefined {
+  if (!tag) return undefined;
+  const lower = tag.toLowerCase();
+  if (lower === "all") return undefined; // all => не шлемо tag
+  return TAG_MAP[lower] ?? tag;
+}
+
 export const register = async (payload: RegisterRequest): Promise<User> => {
   const res = await nextServer.post<User>("/auth/register", payload);
   return res.data;
@@ -50,12 +71,10 @@ export const checkSession = async (): Promise<boolean> => {
   const data = res.data as unknown;
 
   if (typeof data === "object" && data !== null) {
-    
     if ("success" in (data as Record<string, unknown>)) {
       const success = (data as Record<string, unknown>).success;
       return typeof success === "boolean" ? success : true;
     }
-    
     return true;
   }
   return false;
@@ -71,17 +90,18 @@ export const updateMe = async (payload: UpdateUserRequest): Promise<User> => {
   return res.data;
 };
 
-
 export const fetchNotes = async (
   page: number,
   search: string,
   tag?: string
 ): Promise<FetchNotesResponse> => {
+  const normalized = normalizeTagForApi(tag);
+
   const { data } = await nextServer.get<FetchNotesResponse>("/notes", {
     params: {
       page,
       ...(search.trim() ? { search: search.trim() } : {}),
-      ...(tag && tag.toLowerCase() !== "all" ? { tag } : {}),
+      ...(normalized ? { tag: normalized } : {}),
     },
   });
   return data;
@@ -106,12 +126,12 @@ export const getSingleNote = async (id: string): Promise<Note> => {
 
 export const fetchNoteById = getSingleNote;
 
-
 export const getCategories = async (): Promise<CategoryType[]> => {
   const { data } = await nextServer.get<CategoryType[]>("/categories");
   return data;
 };
 
+// bridge-експорт, щоб старі імпорти не ламались
 export type {
   NotesResponse,
   FetchNotesParams,

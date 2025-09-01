@@ -1,6 +1,5 @@
 // app/notes/filter/[...slug]/page.tsx
 
-// app/(private routes)/notes/filter/[...slug]/page.tsx
 import NotesClient from "./Notes.client";
 import type { Metadata } from "next";
 import { fetchNotesServer } from "@/lib/api/serverApi";
